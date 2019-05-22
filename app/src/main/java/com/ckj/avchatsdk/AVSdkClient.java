@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AVSdkClient {
+    List<String> targetIds=new ArrayList<>();
     public static boolean isOpenVideo=true;
     public static boolean isOpenAudio=true;
     public static DatagramSocket sendClient;
@@ -47,8 +48,6 @@ public class AVSdkClient {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                List<String> targetIds=new ArrayList<>();
-                targetIds.add(myselfId);
                 try{
                     heartBeatCheck.start();
                     reciveServer.start();

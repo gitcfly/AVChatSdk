@@ -1,15 +1,10 @@
 package com.ckj.avchatsdk;
 
-import android.app.Application;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-
-import com.ckj.avchatsdk.api.AvChatSdk;
-
-import java.net.DatagramPacket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     AudioSdk audioSdk;
 
-    AVSdkClient avSdkClient;
+    static AVSdkClient avSdkClient;
 
     Button startAv;
 
@@ -35,7 +35,10 @@ public class MainActivity extends AppCompatActivity {
         remoteView=findViewById(R.id.remoteView);
         localView=findViewById(R.id.localView);
         startAv=findViewById(R.id.startAv);
-        avSdkClient=new AVSdkClient("192.168.1.8",8888);
+        String targetId=getIntent().getStringExtra("targetId");
+        if(!avSdkClient.targetIds.contains(targetId)){
+            avSdkClient.targetIds.add(getIntent().getStringExtra("targetId"));
+        }
         videoSdk.setRemoteView(remoteView);
         videoSdk.setLocalView(localView);
         avSdkClient.setVideoSdk(videoSdk);
