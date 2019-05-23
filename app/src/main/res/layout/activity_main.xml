@@ -15,12 +15,37 @@
             android:id="@+id/remoteView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-        <Button
+        <LinearLayout
             android:layout_gravity="bottom"
-            android:id="@+id/startAv"
-            android:text="开始视频"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/openSelf"
+                android:text="开启相机"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/closeSelf"
+                android:text="关闭相机"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/requestAv"
+                android:text="视频邀请"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <Button
+                android:layout_weight="1"
+                android:id="@+id/closeAv"
+                android:text="结束通话"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
     </LinearLayout>
     <com.ckj.avchatsdk.SdkLocalView
         android:layout_gravity="right"

@@ -1,30 +1,31 @@
 package com.ckj.avchatsdk;
 
 import android.os.Build;
-import com.alibaba.fastjson.JSON;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import static com.ckj.avchatsdk.CodeType.forwardAudio;
+import static com.ckj.avchatsdk.CodeType.forwardVideo;
 
 public class AVSdkClient {
+    public static boolean isOnline=true;
     List<String> targetIds=new ArrayList<>();
     public static boolean isOpenVideo=true;
     public static boolean isOpenAudio=true;
     public static DatagramSocket sendClient;
-    public static DatagramPacket sendPacket;
     public static String myselfId=Build.MODEL;
     public static ExecutorService siglePool= Executors.newSingleThreadExecutor();
+    public static InetAddress address;
     public static String serverHost;
     public static int serverPort;
     public AudioSdk audioSdk;
     public VideoSdk videoSdk;
     public ReciveServer reciveServer;
     public HeartBeatCheck heartBeatCheck;
-
+    public ChatSdkListener chatListener;
     public AVSdkClient(String serverHost,int serverPort){
         try {
             this.serverHost=serverHost;
@@ -33,9 +34,7 @@ public class AVSdkClient {
                 sendClient.close();
             }
             sendClient = new DatagramSocket();
-            byte[] openChannel=new byte[1];
-            InetAddress address=InetAddress.getByName(serverHost);
-            sendPacket = new DatagramPacket(openChannel,1,address,serverPort);
+            address=InetAddress.getByName(serverHost);
             reciveServer=new ReciveServer();
             heartBeatCheck=new HeartBeatCheck(reciveServer.reciveSocket,address,serverPort);
         } catch (Exception e) {
@@ -44,25 +43,32 @@ public class AVSdkClient {
     }
 
 
+    public void loginOnline(){
+        isOnline=true;
+        if(!heartBeatCheck.isAlive()){
+            heartBeatCheck.start();
+        }
+        if(!reciveServer.isAlive()){
+            reciveServer.start();
+        }
+    }
+
     public void openAvChat(){
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try{
-                    heartBeatCheck.start();
-                    reciveServer.start();
-                    Thread.sleep(10);
                     while (isOpenAudio||isOpenVideo){
-                        if(videoSdk!=null||VideoSdk.isOpenSelfVideo){
+                        if(videoSdk!=null&&VideoSdk.isOpenSelfVideo){
                             byte[] videoData=videoSdk.getVideoFrame();
                             if(videoData!=null){
-                                sendData(videoData,targetIds,"video");
+                                sendData(videoData,targetIds,forwardVideo);
                             }
                         }
                         if(audioSdk!=null&&AudioSdk.isOpenSelfAudio){
                             byte[] audioData=audioSdk.getAudioFrame();
                             if(audioData!=null){
-                                sendData(audioData,targetIds,"audio");
+                                sendData(audioData,targetIds,forwardAudio);
                             }
                         }
                     }
@@ -71,23 +77,30 @@ public class AVSdkClient {
                 }
             }
         }).start();
-
     }
 
 
-    public void sendData(byte[] data, List<String> targetUsers,String type){
+    public void sendData(byte[] data, List<String> targetUsers,CodeType type){
         switch (type){
-            case "av":
+            case forwardAuConnect:
+                ChatReqTask auTask=new ChatReqTask(targetIds,CodeType.forwardAuConnect);
+                auTask.chatSdkListener=chatListener;
+                siglePool.execute(auTask);
                 break;
-            case "audio":
+            case forwardAvConnect:
+                ChatReqTask avTtask=new ChatReqTask(targetIds,CodeType.forwardAvConnect);
+                avTtask.chatSdkListener=chatListener;
+                siglePool.execute(avTtask);
+                break;
+            case forwardAudio:
                 AudioSendTask audioTask=new AudioSendTask(data,targetUsers);
                 siglePool.execute(audioTask);
                 break;
-            case "video":
+            case forwardVideo:
                 VideoSendTask videoTask=new VideoSendTask(data,targetUsers);
                 siglePool.execute(videoTask);
                 break;
-            case "text":
+            case forwardText:
                 break;
         }
     }
@@ -123,4 +136,20 @@ public class AVSdkClient {
         }
     }
 
+    public ChatSdkListener getChatListener() {
+        return chatListener;
+    }
+
+    public void setChatListener(ChatSdkListener chatListener) {
+        this.chatListener = chatListener;
+        reciveServer.setChatSdkListener(chatListener);
+    }
+
+    public void requestAvChat(List<String> targetIds){
+        sendData(null,targetIds,CodeType.forwardAvConnect);
+    }
+
+    public void requestAuChat(List<String> targetIds){
+        sendData(null,targetIds,CodeType.forwardAuConnect);
+    }
 }

@@ -24,7 +24,6 @@ public class SdkLocalView extends TextureView implements TextureView.SurfaceText
         try {
             camera.setPreviewTexture(surface);
             camera.setDisplayOrientation(90);
-            camera.startPreview();
         }catch (Exception e){
         }
     }
@@ -35,10 +34,15 @@ public class SdkLocalView extends TextureView implements TextureView.SurfaceText
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        if(camera!=null){
-            camera.setPreviewCallback(null);
-            camera.stopPreview();
-            camera.release();
+        try{
+            if(camera!=null){
+                camera.setPreviewCallback(null);
+                camera.stopPreview();
+                camera.release();
+                camera=null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
         return false;
     }

@@ -1,7 +1,6 @@
 package com.ckj.avchatsdk;
 
 import android.hardware.Camera;
-import android.util.Log;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +18,12 @@ public class VideoSdk implements Camera.PreviewCallback {
     private Camera mCamera;
     private BlockingQueue<byte[]> videoQueue=new ArrayBlockingQueue(1);
 
-    private void startVideoChat() throws RuntimeException{
+    public VideoSdk(SdkLocalView localView){
+        this.localView=localView;
+        initCamera();
+    }
+
+    private void initCamera(){
         int numberOfCameras = Camera.getNumberOfCameras();// 获取摄像头个数
         if(numberOfCameras<1){
             throw new RuntimeException("没有相机");
@@ -35,14 +39,16 @@ public class VideoSdk implements Camera.PreviewCallback {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
             mCamera.setParameters(params);
-            localView.initLocalView(mCamera);
+            this.localView.initLocalView(mCamera);
         }
     }
 
     public void stopVideoChat(){
         if(mCamera!=null){
+            mCamera.setPreviewCallback(null);
             mCamera.release();
             mCamera.stopPreview();
+            mCamera=null;
         }
     }
 
@@ -107,22 +113,15 @@ public class VideoSdk implements Camera.PreviewCallback {
         return localView;
     }
 
-    public void setLocalView(SdkLocalView localView) {
-        this.localView = localView;
-    }
-
     public byte[] getVideoFrame(){
         return videoQueue.poll();
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        if(videoQueue.offer(data)){
-            Log.e("dyx","视频采集成功");
-        }else {
-            Log.e("dyx","视频采集失败");
-        }
+        videoQueue.offer(data);
     }
+
 
     public void closeSelf(){
         if(isOpenSelfVideo){
@@ -153,7 +152,10 @@ public class VideoSdk implements Camera.PreviewCallback {
         if(isOpenSelfVideo==false){
             isOpenSelfVideo=true;
             AVSdkClient.isOpenVideo=true;
-            startVideoChat();
+            if(mCamera==null){
+                initCamera();
+            }
+            mCamera.startPreview();
         }
     }
 

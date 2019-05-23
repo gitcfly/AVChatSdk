@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.util.RyuDouble;
 
 import java.io.ByteArrayOutputStream;
+import java.net.DatagramPacket;
 import java.util.List;
 
 public class AudioSendTask implements Runnable {
@@ -25,11 +26,11 @@ public class AudioSendTask implements Runnable {
     public void run() {
         try{
             RequestDataPack request=new RequestDataPack(AVSdkClient.myselfId,targetIds,data);
-            request.setType("audio");
+            request.setType(CodeType.forwardAudio);
             byte[] requestBytes= JSON.toJSONBytes(request);
-            AVSdkClient.sendPacket.setData(requestBytes);
+            DatagramPacket datagramPacket=new DatagramPacket(requestBytes,requestBytes.length,AVSdkClient.address,AVSdkClient.serverPort);
             Log.e("dyx","send audio data length:"+requestBytes.length);
-            AVSdkClient.sendClient.send(AVSdkClient.sendPacket);
+            AVSdkClient.sendClient.send(datagramPacket);
         }catch (Exception e){
             e.printStackTrace();
         }

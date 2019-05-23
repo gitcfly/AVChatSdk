@@ -21,12 +21,7 @@ public class AudioSdk {
     private int bufferSize;
     SdkAudioPlayer audioPlayer;
 
-    public AudioSdk(Context context){
-        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(false);
-        audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0,
-                AudioManager.STREAM_VOICE_CALL);
-        audioManager.setMode(AudioManager.MODE_IN_CALL);
+    public AudioSdk(){
         bufferSize = AudioRecord.getMinBufferSize(frequence, channelInConfig, audioEncoding);
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.VOICE_COMMUNICATION, frequence, channelInConfig, audioEncoding, bufferSize);
         buffer = new byte[bufferSize];

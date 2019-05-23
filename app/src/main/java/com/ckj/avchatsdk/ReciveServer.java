@@ -14,12 +14,22 @@ public class ReciveServer extends Thread {
     SdkAudioPlayer audioPlayer;
     DatagramSocket reciveSocket;
 
+    public ChatSdkListener getChatSdkListener() {
+        return chatSdkListener;
+    }
+
+    public void setChatSdkListener(ChatSdkListener chatSdkListener) {
+        this.chatSdkListener = chatSdkListener;
+    }
+
+    ChatSdkListener chatSdkListener;
     public SdkAudioPlayer getAudioPlayer() {
         return audioPlayer;
     }
     public void setAudioPlayer(SdkAudioPlayer audioPlayer) {
         this.audioPlayer = audioPlayer;
     }
+
     public ReciveServer(){
         try{
             reciveSocket=new DatagramSocket();
@@ -30,7 +40,7 @@ public class ReciveServer extends Thread {
 
     public void run(){
         Log.e("dyx","接收服务已启动");
-        while (AVSdkClient.isOpenAudio||AVSdkClient.isOpenVideo){
+        while (AVSdkClient.isOnline){
             try{
                 byte data[] = new byte[65535];
                 DatagramPacket packet = new DatagramPacket(data, data.length);
@@ -38,6 +48,7 @@ public class ReciveServer extends Thread {
                 RecivedDataTask recivedDataTask=new RecivedDataTask(packet);
                 recivedDataTask.setVideoHandler(handler);
                 recivedDataTask.setAudioPlayer(audioPlayer);
+                recivedDataTask.setChatlistener(chatSdkListener);
                 recivedPool.execute(recivedDataTask);
             }catch (SocketException e){
                 e.printStackTrace();

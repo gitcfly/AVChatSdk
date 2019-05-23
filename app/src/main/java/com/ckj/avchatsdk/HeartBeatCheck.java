@@ -6,22 +6,19 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class HeartBeatCheck extends Thread{
-
     DatagramSocket socket;
-
     DatagramPacket heartBeat;
-
     public HeartBeatCheck(DatagramSocket socket, InetAddress address, int serverPort) {
         this.socket=socket;
         RequestDataPack request=new RequestDataPack(AVSdkClient.myselfId,null,null);
-        request.setType("connect");
+        request.setType(CodeType.online);
         byte[] requestBytes= JSON.toJSONBytes(request);
         this.heartBeat=new DatagramPacket(requestBytes,requestBytes.length,address,serverPort);
     }
 
     @Override
     public void run() {
-        while (AVSdkClient.isOpenAudio||AVSdkClient.isOpenVideo){
+        while (AVSdkClient.isOnline){
             try{
                 socket.send(heartBeat);
                 Thread.sleep(3000);

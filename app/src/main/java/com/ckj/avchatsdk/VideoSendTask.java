@@ -6,6 +6,7 @@ import android.graphics.YuvImage;
 import android.util.Log;
 import com.alibaba.fastjson.JSON;
 import java.io.ByteArrayOutputStream;
+import java.net.DatagramPacket;
 import java.util.List;
 
 public class VideoSendTask implements Runnable {
@@ -26,10 +27,11 @@ public class VideoSendTask implements Runnable {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 image.compressToJpeg(new Rect(0, 0, VideoSdk.videoWidth, VideoSdk.videoHight), 90, stream);
                 RequestDataPack request=new RequestDataPack(AVSdkClient.myselfId,targetIds,stream.toByteArray());
+                request.setType(CodeType.forwardVideo);
                 byte[] requestBytes= JSON.toJSONBytes(request);
-                AVSdkClient.sendPacket.setData(requestBytes);
+                DatagramPacket datagramPacket=new DatagramPacket(requestBytes,requestBytes.length,AVSdkClient.address,AVSdkClient.serverPort);
                 Log.e("dyx","send video data length:"+requestBytes.length);
-                AVSdkClient.sendClient.send(AVSdkClient.sendPacket);
+                AVSdkClient.sendClient.send(datagramPacket);
                 stream.close();
             }
         }catch (Exception e){

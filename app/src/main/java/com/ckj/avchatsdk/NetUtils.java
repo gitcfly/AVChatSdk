@@ -1,50 +1,55 @@
 package com.ckj.avchatsdk;
 
-
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
-
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.DatagramPacket;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class NetUtils {
 
-    public static void requestNet(final Handler handler,final JSONObject request){
+    public static Map<String,NetRespCallback> callbackMap=new HashMap<>();
+
+    public static Object requestNet(final RequestDataPack dataPack,long timeOut){
+        Log.e("dyx",dataPack.type.toString());
+        NetRespCallback callback=new NetRespCallback();
+        final String reqId=UUID.randomUUID().toString();
+        callbackMap.put(reqId,callback);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Socket socket=new Socket("192.168.1.8",8080);
-                    BufferedWriter out=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"utf-8"));
-                    out.write(request.toString());
-                    out.flush();
-                    socket.shutdownOutput();
-                    BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream(),"utf-8"));
-                    String line=null;
-                    StringBuilder builder=new StringBuilder();
-                    while ((line=in.readLine())!=null){
-                        builder.append(line);
-                    }
-                    Message message=new Message();
-                    message.obj=builder.toString();
-                    handler.sendMessage(message);
-                    out.close();
-                    in.close();
-                    socket.close();
+                    dataPack.setSourceId(AVSdkClient.myselfId);
+                    dataPack.setReqid(reqId);
+                    byte[] data= JSON.toJSONBytes(dataPack);
+                    DatagramPacket datagramPacket=new DatagramPacket(data,data.length,AVSdkClient.address,AVSdkClient.serverPort);
+                    AVSdkClient.sendClient.send(datagramPacket);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
             }
         }).start();
+        synchronized (callback){
+            try{
+                if(!callback.returned){
+                    callback.wait(timeOut);
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        callbackMap.remove(reqId);
+        Log.e("dyx","result:"+JSON.toJSONString(callback.result));
+        return callback.result;
     }
 }

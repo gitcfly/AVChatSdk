@@ -3,16 +3,22 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:gravity="center"
-    android:layout_height="30dp">
+    android:layout_height="45dp">
     <ImageView
-        android:layout_width="30dp"
-        android:layout_height="30dp" />
+        android:padding="3dp"
+        android:src="@drawable/user"
+        android:layout_width="45dp"
+        android:layout_height="45dp" />
     <TextView
+        android:textSize="18sp"
+        android:gravity="center|left"
         android:id="@+id/userId"
         android:layout_weight="1"
         android:layout_width="0dp"
         android:layout_height="match_parent" />
     <TextView
+        android:textSize="18sp"
+        android:layout_marginRight="5dp"
         android:id="@+id/avchat"
         android:background="@color/colorPrimary"
         android:text="视频通话"
